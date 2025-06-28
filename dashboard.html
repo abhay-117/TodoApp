@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Todo App Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        body {
+            background: #f7f7f7;
+            font-family: Arial, sans-serif; 
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            background: #fff;
+            max-width: 400px;
+            margin: 60px auto;
+            padding: 32px 28px 24px 28px;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px #ccc;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 28px;
+        }
+        .section {
+            margin-bottom: 24px;
+        }
+        #todos {
+            min-height: 60px;
+            background: #f0f0f0;
+            padding: 12px;
+            border-radius: 4px;
+        }
+        .placeholder {
+            color: #282828;
+        }
+        button {
+            padding: 10px 0;
+            background: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            opacity: 1;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .tb{
+            width: 100%; 
+            padding: 10px; 
+            border: 1px solid #bbb; 
+            border-radius: 4px; 
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Dashboard</h1>
+        <script>
+    const token = localStorage.getItem("token");
+    const username = localStorage.getItem("username");
+
+    if (!token || !username) {
+        alert("Not logged in");
+        window.location = "/signin";
+    }
+
+    function renderTodos(todoList) {
+        const todosDiv = document.getElementById("todos");
+        todosDiv.innerHTML = "";
+        todoList.forEach((todo, index) => {
+            const li = document.createElement("li");
+            li.innerHTML = `
+                ${todo}
+                <button onclick="deleteTodo(${index})" style="margin-left: 10px;">Delete</button>
+            `;
+            todosDiv.appendChild(li);
+        });
+    }
+
+    function fetchTodos() {
+        axios.get("/dashboard/todos", {
+            headers: {
+                auth: token
+            }
+        }).then(response => {
+            renderTodos(response.data);
+        }).catch(error => {
+            console.error(error);
+            alert("Failed to load todos");
+        });
+    }
+
+    function storeTodo() {
+        const todosDiv = document.getElementById("todos");
+        const todoList = [];
+        todosDiv.querySelectorAll("li").forEach(li => {
+            const text = li.innerText.replace("Delete", "").trim();
+            todoList.push(text);
+        });
+
+        axios.post("/dashboard/todos", {
+            todos: todoList
+        }, {
+            headers: {
+                auth: token
+            }
+        }).then(() => {
+            localStorage.setItem("todos", JSON.stringify(todoList));
+        }).catch(err => {
+            console.error("Error saving todos:", err);
+        });
+    }
+
+    function addTodo() {
+        const input = document.getElementById('todo');
+        const text = input.value.trim();
+        if (!text) return;
+
+        const todosDiv = document.getElementById("todos");
+        const li = document.createElement("li");
+        li.innerHTML = `
+            ${text}
+            <button onclick="this.parentElement.remove(); storeTodo();" style="margin-left: 10px;">Delete</button>
+        `;
+        todosDiv.appendChild(li);
+        input.value = '';
+        storeTodo();
+    }
+
+    function deleteTodo(index) {
+        axios.delete(`/dashboard/todos/${index}`, {
+            headers: {
+                auth: token
+            }
+        }).then(() => {
+            fetchTodos();
+        }).catch(err => {
+            console.error("Error deleting todo:", err);
+        });
+    }
+    fetchTodos();
+</script>
+
+        <div class="section">
+            <h2>Your Todos...</h2>
+            <div id="todos" class="placeholder">
+            </div>
+        </div>
+        <div class="tb">
+            <input type="text" id="todo" placeholder="Enter your todo here...">
+        </div>
+        <div class="section">
+            <button onclick="addTodo()" style="display:flex">Add Todo.</button>
+        </div>
+    </div>
+</body>
+</html>
