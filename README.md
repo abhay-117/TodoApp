@@ -73,15 +73,6 @@ Renders todos dynamically
 
 All actions (add/delete) update the server instantly
 
-🗂 API Summary
-Endpoint	                Method	          Description
-/signup	                  POST	            Register new user
-/signin	                  POST	            Login user and get token
-/dashboard	              POST	            Validate token and login
-/dashboard/todos	        GET	              Fetch user's todos
-/dashboard/todos	        POST	            Update/overwrite todos
-/dashboard/todos/:index	  DELETE	          Delete a specific todo
-
 Headers:
 
 Authorization token passed as:  auth: <user-token>
